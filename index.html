@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>兄弟語錄挑戰版</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      background-color: #fff9db;
+      font-family: "Microsoft JhengHei", sans-serif;
+      text-align: center;
+      padding: 1rem;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .container {
+      max-width: 680px;
+      margin: auto;
+      background: rgba(255,255,255,0.8);
+      padding: 2rem;
+      border-radius: 1rem;
+    }
+    #quote, #game {
+      font-size: 1.3rem;
+      margin: 1em 0;
+    }
+    .badge {
+      font-size: 1.2rem;
+      margin: 0.3em;
+    }
+    .plan-list, .badge-list {
+      text-align: left;
+      margin-top: 1em;
+    }
+    input, select, button {
+      padding: 8px;
+      font-size: 1rem;
+      margin: 0.3em;
+      border-radius: 6px;
+      border: none;
+    }
+    textarea {
+      width: 90%;
+      padding: 0.5em;
+      font-size: 1rem;
+      border-radius: 6px;
+      margin-top: 0.5em;
+    }
+    .elephant {
+      font-size: 3rem;
+      margin-top: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>中信兄弟每日語錄 🐘</h1>
+    <div id="elephant" class="elephant">🐘</div>
+    <div id="quote">✨ 載入語錄中...</div>
+    <div id="game">📅 載入賽事中...</div>
+    <button onclick="speakQuote()">🔊 語錄朗讀</button>
+    <br><br>
+    <label>🔔 通知時間：</label>
+    <select id="notifyTime"></select>
+    <button onclick="requestNotification()">啟用通知</button>
+
+    <h2>📝 我的今日計畫</h2>
+    <div>
+      <input type="time" id="timeInput">
+      <input type="text" id="taskInput" placeholder="輸入行程內容...">
+      <button onclick="addPlan()">➕</button>
+    </div>
+    <div class="plan-list" id="planList"></div>
+
+    <h2>🏅 我的兄弟魂徽章</h2>
+    <div class="badge-list" id="badgeList">（尚未解鎖）</div>
+  </div>
+
+  <script>
+    const quotes = [
+      "兄弟齊心，其利斷金！",
+      "不離不棄，永遠一家！",
+      "勝利屬於堅持到底的人！",
+      "今天流的汗，會是明天的光芒。",
+      "用笑容迎接每一次挑戰！"
+    ];
+    const games = {
+      "2025-04-20": "中信兄弟 vs 富邦悍將（15:05，臺北大巨蛋）",
+      "2025-04-21": "今日無比賽，休息日",
+      "2025-04-22": "中信兄弟 vs 統一獅（18:35，洲際）"
+    };
+
+    const today = new Date();
+    const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), d = String(today.getDate()).padStart(2,'0');
+    const dateStr = `${y}-${m}-${d}`;
+    const seed = parseInt(y + m + d);
+    const quote = quotes[seed % quotes.length];
+    const gameInfo = games[dateStr] || "今日無比賽，但兄弟魂持續燃燒🔥";
+    const bgImages = ["bg1.jpg","bg2.jpg","bg3.jpg","bg4.jpg","bg5.jpg","bg6.jpg","bg7.jpg"];
+    document.body.style.backgroundImage = `url('${bgImages[seed % bgImages.length]}')`;
+    document.getElementById("quote").textContent = `✨ 今日語錄：${quote}`;
+    document.getElementById("game").textContent = `📅 今日賽事：${gameInfo}`;
+    document.getElementById("elephant").textContent = gameInfo.includes("兄弟") ? "🐘🧢" : "🐘";
+
+    function speakQuote() {
+      const u = new SpeechSynthesisUtterance(quote);
+      u.lang = "zh-TW"; u.pitch = 1; u.rate = 1;
+      speechSynthesis.speak(u);
+      unlockBadge("reader");
+    }
+
+    const notifySelect = document.getElementById("notifyTime");
+    for (let i = 7; i <= 20; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `${i}:00`;
+      notifySelect.appendChild(opt);
+    }
+    const savedHour = localStorage.getItem("notifyHour");
+    if (savedHour) notifySelect.value = savedHour;
+
+    function requestNotification() {
+      Notification.requestPermission().then(p => {
+        if (p === "granted") {
+          const h = notifySelect.value;
+          localStorage.setItem("notifyHour", h);
+          scheduleNotification(h);
+          alert("✔️ 通知已設定於每天 " + h + ":00");
+        }
+      });
+    }
+
+    function scheduleNotification(hour) {
+      const now = new Date();
+      const target = new Date(); target.setHours(hour,0,0,0);
+      if (now > target) target.setDate(target.getDate()+1);
+      const timeout = target.getTime() - now.getTime();
+      setTimeout(() => {
+        new Notification("✨ 今日語錄", { body: `${quote}
+📅 ${gameInfo}` });
+        scheduleNotification(hour);
+      }, timeout);
+    }
+
+    const dateKey = `plans-${y}-${m}-${d}`;
+    const planListDiv = document.getElementById("planList");
+
+    function loadPlans() {
+      const stored = localStorage.getItem(dateKey);
+      const plans = stored ? JSON.parse(stored) : [];
+      plans.sort((a,b)=>a.time.localeCompare(b.time));
+      planListDiv.innerHTML = "";
+      plans.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "plan-item";
+        item.textContent = `🕒 ${p.time}：${p.task}`;
+        planListDiv.appendChild(item);
+      });
+      if (plans.length >= 1) unlockBadge("planner");
+    }
+
+    function addPlan() {
+      const time = document.getElementById("timeInput").value;
+      const task = document.getElementById("taskInput").value.trim();
+      if (!time || !task) return alert("請輸入時間與內容");
+      const stored = localStorage.getItem(dateKey);
+      const plans = stored ? JSON.parse(stored) : [];
+      plans.push({ time, task });
+      localStorage.setItem(dateKey, JSON.stringify(plans));
+      document.getElementById("taskInput").value = "";
+      loadPlans();
+    }
+
+    const badgeList = document.getElementById("badgeList");
+    const badgeData = {
+      planner: "🥉 堅持象 - 記錄今日行程",
+      reader: "🥇 語錄達人 - 點過朗讀按鈕",
+      supporter: "🌟 應援魂 - 比賽日完成記錄"
+    };
+
+    function unlockBadge(key) {
+      const unlocked = JSON.parse(localStorage.getItem("badges") || "[]");
+      if (!unlocked.includes(key)) {
+        unlocked.push(key);
+        localStorage.setItem("badges", JSON.stringify(unlocked));
+        updateBadges();
+      }
+    }
+
+    function updateBadges() {
+      const unlocked = JSON.parse(localStorage.getItem("badges") || "[]");
+      badgeList.innerHTML = unlocked.length ? unlocked.map(k => `<div class="badge">🏅 ${badgeData[k]}</div>`).join("") : "（尚未解鎖）";
+    }
+
+    // 自動檢查比賽日成就
+    if (gameInfo.includes("兄弟")) unlockBadge("supporter");
+
+    loadPlans();
+    updateBadges();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
