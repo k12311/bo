@@ -68,13 +68,16 @@
     <select id="notifyTime"></select>
     <button onclick="requestNotification()">啟用通知</button>
 
-    <h2>📝 我的今日計畫</h2>
+     <h2>📝 我的計畫行事曆</h2>
+    <label>📅 選擇日期：</label>
+    <input type="date" id="datePicker"><br>
     <div>
       <input type="time" id="timeInput">
       <input type="text" id="taskInput" placeholder="輸入行程內容...">
       <button onclick="addPlan()">➕</button>
     </div>
     <div class="plan-list" id="planList"></div>
+
 
     <h2>🏅 我的兄弟魂徽章</h2>
     <div class="badge-list" id="badgeList">（尚未解鎖）</div>
@@ -186,7 +189,11 @@ speechSynthesis.onvoiceschanged = () => {};
 
     function scheduleNotification(hour) {
       const now = new Date();
-      const target = new Date(); target.setHours(hour,0,0,0);
+     function getDateKey() {
+  const selectedDate = document.getElementById("datePicker").value;
+  return selectedDate ? `plans-${selectedDate}` : `plans-${y}-${m}-${d}`;
+}
+
       if (now > target) target.setDate(target.getDate()+1);
       const timeout = target.getTime() - now.getTime();
       setTimeout(() => {
