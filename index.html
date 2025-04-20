@@ -132,12 +132,33 @@
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
-    function speakQuote() {
-      const u = new SpeechSynthesisUtterance(quote);
-      u.lang = "zh-TW"; u.pitch = 1; u.rate = 1;
-      speechSynthesis.speak(u);
-      unlockBadge("reader");
-    }
+  function speakQuote() {
+  // 清除堆積的朗讀（避免無聲）
+  speechSynthesis.cancel();
+
+  // 建立語音內容
+  const u = new SpeechSynthesisUtterance(quote);
+  u.lang = "zh-TW";
+  u.pitch = 1;
+  u.rate = 1;
+
+  // 嘗試選擇最適合的中文語音
+  const voices = speechSynthesis.getVoices();
+  const zhVoice = voices.find(v => v.lang === "zh-TW" || v.lang === "zh_CN" || v.name.includes("Chinese"));
+  if (zhVoice) {
+    u.voice = zhVoice;
+  }
+
+  // 顯示提示視窗（確認朗讀內容）
+  alert("🎤 小翔準備朗讀囉～\\n\\n📣「" + quote + "」");
+
+  speechSynthesis.speak(u);
+  unlockBadge("reader");
+}
+
+// 避免語音清單不載入（某些裝置需觸發）
+speechSynthesis.onvoiceschanged = () => {};
+}
 
     const notifySelect = document.getElementById("notifyTime");
     for (let i = 7; i <= 20; i++) {
