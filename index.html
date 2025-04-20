@@ -223,6 +223,12 @@
       updateBadges();
       if (gameInfo.includes("兄弟")) unlockBadge("supporter");
     });
+    if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log('✅ Service Worker 註冊成功'))
+    .catch(err => console.error('❌ Service Worker 註冊失敗', err));
+}
+
   </script>
 </body>
 </html>
