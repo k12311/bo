@@ -77,6 +77,9 @@
       <button onclick="addPlan()">➕</button>
     </div>
     <div class="plan-list" id="planList"></div>
+    <h2>📖 歷史紀錄</h2>
+<button onclick="loadHistory()">🔍 顯示最近 30 天紀錄</button>
+<div id="historyLog" style="margin-top: 1em; text-align: left; font-size: 1rem;"></div>
 
     <h2>🏅 我的兄弟魂徽章</h2>
     <div class="badge-list" id="badgeList">（尚未解鎖）</div>
@@ -230,40 +233,112 @@
       loadPlans();
     }
 
+    const planListDiv = document.getElementById("planList");
     const badgeList = document.getElementById("badgeList");
+
     const badgeData = {
       planner: "🥉 堅持象 - 記錄今日行程",
       reader: "🥇 語錄達人 - 點過朗讀按鈕",
       supporter: "🌟 應援魂 - 比賽日完成記錄"
     };
 
-    function unlockBadge(key) {
-    document.addEventListener("DOMContentLoaded", () => {
-  const datePicker = document.getElementById("datePicker");
-  datePicker.value = `${y}-${m}-${d}`;
-  datePicker.addEventListener("change", loadPlans);
-  loadPlans();
-  updateBadges(); // ✅ 加上這行
-});
+    function getDateKey() {
+      const selectedDate = document.getElementById("datePicker").value;
+      return selectedDate ? `plans-${selectedDate}` : `plans-${y}-${m}-${d}`;
+    }
 
+    function loadPlans() {
+      const stored = localStorage.getItem(getDateKey());
+      const plans = stored ? JSON.parse(stored) : [];
+      plans.sort((a, b) => a.time.localeCompare(b.time));
+      planListDiv.innerHTML = "";
+      plans.forEach((p, i) => {
+        const item = document.createElement("div");
+        item.className = "plan-item";
+        item.textContent = `🕒 ${p.time}：${p.task}`;
+        item.style.cursor = "pointer";
+        item.title = "點擊刪除此行程";
+        item.onclick = () => {
+          if (confirm("確定要刪除這筆行程嗎？")) {
+            plans.splice(i, 1);
+            localStorage.setItem(getDateKey(), JSON.stringify(plans));
+            loadPlans();
+          }
+        };
+        planListDiv.appendChild(item);
+      });
+      if (plans.length >= 1) unlockBadge("planner");
+    }
+
+    function addPlan() {
+      const time = document.getElementById("timeInput").value;
+      const task = document.getElementById("taskInput").value.trim();
+      if (!time || !task) return alert("請輸入時間與內容");
+      const stored = localStorage.getItem(getDateKey());
+      const plans = stored ? JSON.parse(stored) : [];
+      plans.push({ time, task });
+      localStorage.setItem(getDateKey(), JSON.stringify(plans));
+      document.getElementById("taskInput").value = "";
+      loadPlans();
+    }
+
+    function unlockBadge(key) {
+      const unlocked = JSON.parse(localStorage.getItem("badges") || "[]");
+      if (!unlocked.includes(key)) {
+        unlocked.push(key);
+        localStorage.setItem("badges", JSON.stringify(unlocked));
+      }
+      updateBadges();
     }
 
     function updateBadges() {
       const unlocked = JSON.parse(localStorage.getItem("badges") || "[]");
-      badgeList.innerHTML = unlocked.length ? unlocked.map(k => `<div class="badge">🏅 ${badgeData[k]}</div>`).join("") : "（尚未解鎖）";
+      badgeList.innerHTML = unlocked.length
+        ? unlocked.map(k => `<div class="badge">🏅 ${badgeData[k]}</div>`).join("")
+        : "（尚未解鎖）";
     }
 
-    if (gameInfo.includes("兄弟")) unlockBadge("supporter");
+    function loadHistory() {
+      const historyDiv = document.getElementById("historyLog");
+      historyDiv.innerHTML = "";
+      const today = new Date();
+
+      for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const key = `plans-${y}-${m}-${d}`;
+        const plans = JSON.parse(localStorage.getItem(key) || "[]");
+
+        if (plans.length > 0) {
+          const section = document.createElement("div");
+          section.style.margin = "1em 0";
+          section.style.padding = "0.5em";
+          section.style.border = "1px dashed #ccc";
+          section.style.background = "#fffdf5";
+          section.innerHTML = `<strong>📅 ${y}-${m}-${d}</strong><br>` +
+            plans.map(p => `🕒 ${p.time}：${p.task}`).join("<br>");
+          historyDiv.appendChild(section);
+        }
+      }
+
+      if (historyDiv.innerHTML === "") {
+        historyDiv.innerHTML = "🙈 最近 30 天沒有任何紀錄喔～";
+      }
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
       const datePicker = document.getElementById("datePicker");
       datePicker.value = `${y}-${m}-${d}`;
       datePicker.addEventListener("change", loadPlans);
       loadPlans();
+      updateBadges();
     });
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+    if (gameInfo.includes("兄弟")) {
+      unlockBadge("supporter");
     }
   </script>
 </body>
