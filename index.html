@@ -56,23 +56,17 @@
     <div id="quote">✨ 載入語錄中...</div>
     <div id="game">📅 載入賽事中...</div>
     <button onclick="speakQuote()">🔊 語錄朗讀</button>
-    <br><br>
-    <label>🔔 通知時間：</label>
-    <select id="notifyTime"></select>
-    <button onclick="requestNotification()">啟用通知</button>
 
     <h2>📝 我的計畫行事曆</h2>
     <label>📅 選擇日期：</label>
     <input type="date" id="datePicker"><br>
-    <div>
-      <input type="time" id="timeInput">
-      <input type="text" id="taskInput" placeholder="輸入行程內容...">
-      <button onclick="addPlan()">➕</button>
-    </div>
+    <input type="time" id="timeInput">
+    <input type="text" id="taskInput" placeholder="輸入行程內容...">
+    <button onclick="addPlan()">➕ 新增</button>
     <div class="plan-list" id="planList"></div>
 
     <h2>📖 歷史紀錄</h2>
-    <button onclick="loadHistory()">🔍 顯示最近 30 天紀錄</button>
+    <button onclick="loadCombinedHistory()">📅 顯示最近 30 天紀錄</button>
     <div id="historyLog" style="margin-top: 1em; text-align: left; font-size: 1rem;"></div>
 
     <h2>🏅 我的兄弟魂徽章</h2>
@@ -81,23 +75,30 @@
 
   <script>
     const quotes = [
-      "兄弟齊心，其利斷金！", "不離不棄，永遠一家！", "勝利屬於堅持到底的人！",
-      "今天流的汗，會是明天的光芒。", "用笑容迎接每一次挑戰！", "輸贏之外，我們看到更多的感動。",
-      "不只是一場比賽，是信仰的延續。", "做彼此的後盾，就是兄弟。", "一日兄弟，終身兄弟。",
+      "兄弟齊心，其利斷金！",
+      "不離不棄，永遠一家！",
+      "勝利屬於堅持到底的人！",
+      "今天流的汗，會是明天的光芒。",
+      "用笑容迎接每一次挑戰！",
+      "輸贏之外，我們看到更多的感動。",
+      "不只是一場比賽，是信仰的延續。",
+      "做彼此的後盾，就是兄弟。",
+      "一日兄弟，終身兄弟。",
       "你不孤單，我們一起戰到最後！"
     ];
 
     const games = {
       "2025-04-20": "中信兄弟 vs 富邦悍將（15:05，臺北大巨蛋）",
       "2025-04-21": "今日無比賽，休息日",
-      "2025-04-22": "中信兄弟 vs 統一獅（18:35，洲際）"
+      "2025-04-22": "中信兄弟 vs 統一獅（18:35，洲際）",
+      "2025-04-23": "富邦悍將 vs 中信兄弟（18:35，新莊）",
+      "2025-04-24": "富邦悍將 vs 中信兄弟（18:35，新莊）"
     };
 
     const today = new Date();
     const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), d = String(today.getDate()).padStart(2,'0');
     const dateStr = `${y}-${m}-${d}`;
-    const seed = parseInt(y + m + d);
-    const quote = quotes[seed % quotes.length];
+    const quote = quotes[parseInt(y + m + d) % quotes.length];
     const gameInfo = games[dateStr] || "今日無比賽，但兄弟魂持續燃燒🔥";
     document.getElementById("quote").textContent = `✨ 今日語錄：${quote}`;
     document.getElementById("game").textContent = `📅 今日賽事：${gameInfo}`;
@@ -106,47 +107,25 @@
     function updateDateTime() {
       const now = new Date();
       const weekList = ["日", "一", "二", "三", "四", "五", "六"];
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      const formattedDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}（${weekList[now.getDay()]}）`;
-      const timeStr = `${hours}:${minutes}`;
+      const dateStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}（${weekList[now.getDay()]}）`;
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       let message = "今天也要一起努力唷！";
       if (now.getHours() < 6) message = "凌晨了～早點休息唷～";
       else if (now.getHours() < 11) message = "早安！今天也要加油～";
       else if (now.getHours() < 17) message = "下午好！記得補充水分唷～";
       else if (now.getHours() < 22) message = "晚上了～辛苦一天了呢～";
       else message = "要準備睡覺囉～明天小翔也會陪你！";
-      document.getElementById("todayInfo").innerHTML = `📆 今天是：${formattedDate} 🕒 現在時間：${timeStr}<br>🐘 小翔說：${message}`;
+      document.getElementById("todayInfo").innerHTML = `📆 今天是：${dateStr} 🕒 現在時間：${timeStr}<br>🐘 小翔說：${message}`;
     }
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
     function speakQuote() {
-      speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(quote);
       u.lang = "zh-TW";
+      speechSynthesis.cancel();
       speechSynthesis.speak(u);
       unlockBadge("reader");
-    }
-
-    const notifySelect = document.getElementById("notifyTime");
-    for (let i = 7; i <= 20; i++) {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `${i}:00`;
-      notifySelect.appendChild(opt);
-    }
-    const savedHour = localStorage.getItem("notifyHour");
-    if (savedHour) notifySelect.value = savedHour;
-
-    function requestNotification() {
-      Notification.requestPermission().then(p => {
-        if (p === "granted") {
-          const h = notifySelect.value;
-          localStorage.setItem("notifyHour", h);
-          alert("✔️ 通知已設定於每天 " + h + ":00");
-        }
-      });
     }
 
     function getDateKey() {
@@ -155,23 +134,21 @@
     }
 
     function loadPlans() {
-      const planListDiv = document.getElementById("planList");
-      const stored = localStorage.getItem(getDateKey());
-      const plans = stored ? JSON.parse(stored) : [];
-      plans.sort((a, b) => a.time.localeCompare(b.time));
-      planListDiv.innerHTML = "";
-      plans.forEach((p, i) => {
+      const plans = JSON.parse(localStorage.getItem(getDateKey()) || "[]");
+      const list = document.getElementById("planList");
+      list.innerHTML = "";
+      plans.sort((a,b)=>a.time.localeCompare(b.time));
+      plans.forEach((p,i) => {
         const item = document.createElement("div");
-        item.className = "plan-item";
         item.textContent = `🕒 ${p.time}：${p.task}`;
         item.onclick = () => {
-          if (confirm("刪除這筆行程？")) {
-            plans.splice(i, 1);
+          if (confirm("確定刪除？")) {
+            plans.splice(i,1);
             localStorage.setItem(getDateKey(), JSON.stringify(plans));
             loadPlans();
           }
         };
-        planListDiv.appendChild(item);
+        list.appendChild(item);
       });
       if (plans.length > 0) unlockBadge("planner");
     }
@@ -180,15 +157,14 @@
       const time = document.getElementById("timeInput").value;
       const task = document.getElementById("taskInput").value.trim();
       if (!time || !task) return alert("請輸入時間與內容");
-      const stored = localStorage.getItem(getDateKey());
-      const plans = stored ? JSON.parse(stored) : [];
+      const key = getDateKey();
+      const plans = JSON.parse(localStorage.getItem(key) || "[]");
       plans.push({ time, task });
-      localStorage.setItem(getDateKey(), JSON.stringify(plans));
+      localStorage.setItem(key, JSON.stringify(plans));
       document.getElementById("taskInput").value = "";
       loadPlans();
     }
 
-    const badgeList = document.getElementById("badgeList");
     const badgeData = {
       planner: "🥉 堅持象 - 記錄今日行程",
       reader: "🥇 語錄達人 - 點過朗讀按鈕",
@@ -206,41 +182,42 @@
 
     function updateBadges() {
       const unlocked = JSON.parse(localStorage.getItem("badges") || "[]");
-      badgeList.innerHTML = unlocked.length
-        ? unlocked.map(k => `<div class="badge">🏅 ${badgeData[k]}</div>`).join("")
-        : "（尚未解鎖）";
+      const div = document.getElementById("badgeList");
+      div.innerHTML = unlocked.length ? unlocked.map(k => `🏅 ${badgeData[k]}`).join("<br>") : "（尚未解鎖）";
     }
 
-    function loadHistory() {
-      const historyDiv = document.getElementById("historyLog");
-      historyDiv.innerHTML = "";
+    function loadCombinedHistory() {
+      const log = document.getElementById("historyLog");
+      log.innerHTML = "";
       const today = new Date();
+
       for (let i = 0; i < 30; i++) {
         const date = new Date();
         date.setDate(today.getDate() - i);
         const y = date.getFullYear();
-        const m = String(date.getMonth()+1).padStart(2,'0');
-        const d = String(date.getDate()).padStart(2,'0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
         const key = `plans-${y}-${m}-${d}`;
+        const dateStr = `${y}-${m}-${d}`;
         const plans = JSON.parse(localStorage.getItem(key) || "[]");
-        if (plans.length) {
-          const section = document.createElement("div");
-          section.innerHTML = `<strong>📅 ${y}-${m}-${d}</strong><br>` +
-            plans.map(p => `🕒 ${p.time}：${p.task}`).join("<br>");
-          section.style.margin = "1em 0";
-          section.style.padding = "0.5em";
-          section.style.border = "1px dashed #ccc";
-          section.style.background = "#fffdf5";
-          historyDiv.appendChild(section);
+        const game = games[dateStr];
+
+        if (plans.length || game) {
+          const div = document.createElement("div");
+          div.style = "border:1px dashed #aaa; margin:1em 0; padding:0.5em; background:#fffdf5";
+          div.innerHTML = `<strong>📅 ${dateStr}</strong><br>` +
+                          (game ? `⚾ ${game}<br>` : "") +
+                          plans.map(p => `🕒 ${p.time}：${p.task}`).join("<br>");
+          log.appendChild(div);
         }
       }
-      if (!historyDiv.innerHTML) historyDiv.innerHTML = "🙈 最近 30 天沒有任何紀錄喔～";
+      if (!log.innerHTML) log.innerHTML = "🙈 最近 30 天沒有任何紀錄喔～";
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      const datePicker = document.getElementById("datePicker");
-      datePicker.value = `${y}-${m}-${d}`;
-      datePicker.addEventListener("change", loadPlans);
+      const picker = document.getElementById("datePicker");
+      picker.value = `${y}-${m}-${d}`;
+      picker.addEventListener("change", loadPlans);
       loadPlans();
       updateBadges();
       if (gameInfo.includes("兄弟")) unlockBadge("supporter");
@@ -248,5 +225,6 @@
   </script>
 </body>
 </html>
+
 >
 
