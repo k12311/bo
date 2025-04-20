@@ -180,14 +180,22 @@
       const plans = stored ? JSON.parse(stored) : [];
       plans.sort((a,b)=>a.time.localeCompare(b.time));
       planListDiv.innerHTML = "";
-      plans.forEach(p => {
-        const item = document.createElement("div");
-        item.className = "plan-item";
-        item.textContent = `🕒 ${p.time}：${p.task}`;
-        planListDiv.appendChild(item);
-      });
-      if (plans.length >= 1) unlockBadge("planner");
+    plans.forEach((p, i) => {
+  const item = document.createElement("div");
+  item.className = "plan-item";
+  item.textContent = `🕒 ${p.time}：${p.task}`;
+  item.style.cursor = "pointer";
+  item.title = "點擊刪除此行程";
+  item.onclick = () => {
+    if (confirm("確定要刪除這筆行程嗎？")) {
+      plans.splice(i, 1);
+      localStorage.setItem(dateKey, JSON.stringify(plans));
+      loadPlans();
     }
+  };
+  planListDiv.appendChild(item);
+});
+
 
     function addPlan() {
       const time = document.getElementById("timeInput").value;
