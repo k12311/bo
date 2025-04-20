@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>兄弟語錄挑戰版</title>
-  <link rel="manifest" href="manifest.json">
+  <title>兄弟語錄挑戰版（修正版）</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <style>
     body {
       background-color: #fff9db;
@@ -68,7 +68,7 @@
     <select id="notifyTime"></select>
     <button onclick="requestNotification()">啟用通知</button>
 
-     <h2>📝 我的計畫行事曆</h2>
+    <h2>📝 我的計畫行事曆</h2>
     <label>📅 選擇日期：</label>
     <input type="date" id="datePicker"><br>
     <div>
@@ -78,24 +78,23 @@
     </div>
     <div class="plan-list" id="planList"></div>
 
-
     <h2>🏅 我的兄弟魂徽章</h2>
     <div class="badge-list" id="badgeList">（尚未解鎖）</div>
   </div>
 
   <script>
-   const quotes = [
-  "兄弟齊心，其利斷金！",
-  "不離不棄，永遠一家！",
-  "勝利屬於堅持到底的人！",
-  "今天流的汗，會是明天的光芒。",
-  "用笑容迎接每一次挑戰！",
-  "輸贏之外，我們看到更多的感動。",
-  "不只是一場比賽，是信仰的延續。",
-  "做彼此的後盾，就是兄弟。",
-  "一日兄弟，終身兄弟。",
-  "你不孤單，我們一起戰到最後！"
-];
+    const quotes = [
+      "兄弟齊心，其利斷金！",
+      "不離不棄，永遠一家！",
+      "勝利屬於堅持到底的人！",
+      "今天流的汗，會是明天的光芒。",
+      "用笑容迎接每一次挑戰！",
+      "輸贏之外，我們看到更多的感動。",
+      "不只是一場比賽，是信仰的延續。",
+      "做彼此的後盾，就是兄弟。",
+      "一日兄弟，終身兄弟。",
+      "你不孤單，我們一起戰到最後！"
+    ];
 
     const games = {
       "2025-04-20": "中信兄弟 vs 富邦悍將（15:05，臺北大巨蛋）",
@@ -128,43 +127,25 @@
       else if (now.getHours() < 17) message = "下午好！記得補充水分唷～";
       else if (now.getHours() < 22) message = "晚上了～辛苦一天了呢～";
       else message = "要準備睡覺囉～明天小翔也會陪你！";
-      document.getElementById("todayInfo").innerHTML = `
-        📆 今天是：${dateStr} 🕒 現在時間：${timeStr}<br>
-        🐘 小翔說：${message}`;
+      document.getElementById("todayInfo").innerHTML = `📆 今天是：${dateStr} 🕒 現在時間：${timeStr}<br>🐘 小翔說：${message}`;
     }
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
- function speakQuote() {
-  // 清除堆積的朗讀（避免無聲）
-  speechSynthesis.cancel();
-
-  // 建立語音內容
-  const u = new SpeechSynthesisUtterance(quote);
-  u.lang = "zh-TW";
-  u.pitch = 1;
-  u.rate = 1;
-
-  // 嘗試選擇最適合的中文語音
-  const voices = speechSynthesis.getVoices();
-  const zhVoice = voices.find(v =>
-    v.lang === "zh-TW" || v.lang === "zh_CN" || v.name.includes("Chinese")
-  );
-  if (zhVoice) {
-    u.voice = zhVoice;
-  }
-
-  // 顯示提示視窗（確認朗讀內容）
-  alert("🎤 小翔準備朗讀囉～\\n\\n📣「" + quote + "」");
-
-  speechSynthesis.speak(u);
-  unlockBadge("reader");
-}
-
-// 避免語音清單不載入（某些裝置需觸發）
-speechSynthesis.onvoiceschanged = () => {};
-} 
-
+    function speakQuote() {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(quote);
+      u.lang = "zh-TW";
+      u.pitch = 1;
+      u.rate = 1;
+      const voices = speechSynthesis.getVoices();
+      const zhVoice = voices.find(v => v.lang === "zh-TW" || v.lang === "zh_CN" || v.name.includes("Chinese"));
+      if (zhVoice) u.voice = zhVoice;
+      alert("🎤 小翔準備朗讀囉～\n\n📣「" + quote + "」");
+      speechSynthesis.speak(u);
+      unlockBadge("reader");
+    }
+    speechSynthesis.onvoiceschanged = () => {};
 
     const notifySelect = document.getElementById("notifyTime");
     for (let i = 7; i <= 20; i++) {
@@ -189,53 +170,54 @@ speechSynthesis.onvoiceschanged = () => {};
 
     function scheduleNotification(hour) {
       const now = new Date();
-     function getDateKey() {
-  const selectedDate = document.getElementById("datePicker").value;
-  return selectedDate ? `plans-${selectedDate}` : `plans-${y}-${m}-${d}`;
-}
-
-      if (now > target) target.setDate(target.getDate()+1);
+      const target = new Date();
+      target.setHours(hour, 0, 0, 0);
+      if (now > target) target.setDate(target.getDate() + 1);
       const timeout = target.getTime() - now.getTime();
       setTimeout(() => {
-        new Notification("✨ 今日語錄", { body: `${quote}
-📅 ${gameInfo}` });
+        new Notification("✨ 今日語錄", { body: `${quote}\n📅 ${gameInfo}` });
         scheduleNotification(hour);
       }, timeout);
     }
 
-    const dateKey = `plans-${y}-${m}-${d}`;
+    function getDateKey() {
+      const selectedDate = document.getElementById("datePicker").value;
+      return selectedDate ? `plans-${selectedDate}` : `plans-${y}-${m}-${d}`;
+    }
+
     const planListDiv = document.getElementById("planList");
 
     function loadPlans() {
-      const stored = localStorage.getItem(dateKey);
+      const stored = localStorage.getItem(getDateKey());
       const plans = stored ? JSON.parse(stored) : [];
       plans.sort((a,b)=>a.time.localeCompare(b.time));
       planListDiv.innerHTML = "";
-    plans.forEach((p, i) => {
-  const item = document.createElement("div");
-  item.className = "plan-item";
-  item.textContent = `🕒 ${p.time}：${p.task}`;
-  item.style.cursor = "pointer";
-  item.title = "點擊刪除此行程";
-  item.onclick = () => {
-    if (confirm("確定要刪除這筆行程嗎？")) {
-      plans.splice(i, 1);
-      localStorage.setItem(dateKey, JSON.stringify(plans));
-      loadPlans();
+      plans.forEach((p, i) => {
+        const item = document.createElement("div");
+        item.className = "plan-item";
+        item.textContent = `🕒 ${p.time}：${p.task}`;
+        item.style.cursor = "pointer";
+        item.title = "點擊刪除此行程";
+        item.onclick = () => {
+          if (confirm("確定要刪除這筆行程嗎？")) {
+            plans.splice(i, 1);
+            localStorage.setItem(getDateKey(), JSON.stringify(plans));
+            loadPlans();
+          }
+        };
+        planListDiv.appendChild(item);
+      });
+      if (plans.length >= 1) unlockBadge("planner");
     }
-  };
-  planListDiv.appendChild(item);
-});
 
-}
     function addPlan() {
       const time = document.getElementById("timeInput").value;
       const task = document.getElementById("taskInput").value.trim();
       if (!time || !task) return alert("請輸入時間與內容");
-      const stored = localStorage.getItem(dateKey);
+      const stored = localStorage.getItem(getDateKey());
       const plans = stored ? JSON.parse(stored) : [];
       plans.push({ time, task });
-      localStorage.setItem(dateKey, JSON.stringify(plans));
+      localStorage.setItem(getDateKey(), JSON.stringify(plans));
       document.getElementById("taskInput").value = "";
       loadPlans();
     }
@@ -263,8 +245,12 @@ speechSynthesis.onvoiceschanged = () => {};
 
     if (gameInfo.includes("兄弟")) unlockBadge("supporter");
 
-    loadPlans();
-    updateBadges();
+    document.addEventListener("DOMContentLoaded", () => {
+      const datePicker = document.getElementById("datePicker");
+      datePicker.value = `${y}-${m}-${d}`;
+      datePicker.addEventListener("change", loadPlans);
+      loadPlans();
+    });
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
@@ -272,3 +258,4 @@ speechSynthesis.onvoiceschanged = () => {};
   </script>
 </body>
 </html>
+
