@@ -22,9 +22,10 @@
       padding: 2rem;
       border-radius: 1rem;
     }
-    #quote, #game {
+    #todayInfo, #quote, #game {
       font-size: 1.3rem;
       margin: 1em 0;
+      color: #555;
     }
     .badge {
       font-size: 1.2rem;
@@ -58,6 +59,7 @@
   <div class="container">
     <h1>中信兄弟每日語錄 🐘</h1>
     <div id="elephant" class="elephant">🐘</div>
+    <div id="todayInfo">📆 今天是：載入中...<br>🐘 小翔說：載入中...</div>
     <div id="quote">✨ 載入語錄中...</div>
     <div id="game">📅 載入賽事中...</div>
     <button onclick="speakQuote()">🔊 語錄朗讀</button>
@@ -103,6 +105,26 @@
     document.getElementById("quote").textContent = `✨ 今日語錄：${quote}`;
     document.getElementById("game").textContent = `📅 今日賽事：${gameInfo}`;
     document.getElementById("elephant").textContent = gameInfo.includes("兄弟") ? "🐘🧢" : "🐘";
+
+    function updateDateTime() {
+      const now = new Date();
+      const weekList = ["日", "一", "二", "三", "四", "五", "六"];
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const dateStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}（${weekList[now.getDay()]}）`;
+      const timeStr = `${hours}:${minutes}`;
+      let message = "今天也要一起努力唷！";
+      if (now.getHours() < 6) message = "凌晨了～早點休息唷～";
+      else if (now.getHours() < 11) message = "早安！今天也要加油～";
+      else if (now.getHours() < 17) message = "下午好！記得補充水分唷～";
+      else if (now.getHours() < 22) message = "晚上了～辛苦一天了呢～";
+      else message = "要準備睡覺囉～明天小翔也會陪你！";
+      document.getElementById("todayInfo").innerHTML = `
+        📆 今天是：${dateStr} 🕒 現在時間：${timeStr}<br>
+        🐘 小翔說：${message}`;
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
 
     function speakQuote() {
       const u = new SpeechSynthesisUtterance(quote);
@@ -194,7 +216,6 @@
       badgeList.innerHTML = unlocked.length ? unlocked.map(k => `<div class="badge">🏅 ${badgeData[k]}</div>`).join("") : "（尚未解鎖）";
     }
 
-    // 自動檢查比賽日成就
     if (gameInfo.includes("兄弟")) unlockBadge("supporter");
 
     loadPlans();
