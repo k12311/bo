@@ -230,12 +230,14 @@
     };
 
     function unlockBadge(key) {
-      const unlocked = JSON.parse(localStorage.getItem("badges") || "[]");
-      if (!unlocked.includes(key)) {
-        unlocked.push(key);
-        localStorage.setItem("badges", JSON.stringify(unlocked));
-        updateBadges();
-      }
+    document.addEventListener("DOMContentLoaded", () => {
+  const datePicker = document.getElementById("datePicker");
+  datePicker.value = `${y}-${m}-${d}`;
+  datePicker.addEventListener("change", loadPlans);
+  loadPlans();
+  updateBadges(); // ✅ 加上這行
+});
+
     }
 
     function updateBadges() {
