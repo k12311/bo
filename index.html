@@ -132,7 +132,7 @@
     updateDateTime();
     setInterval(updateDateTime, 60000);
 
-  function speakQuote() {
+ function speakQuote() {
   // 清除堆積的朗讀（避免無聲）
   speechSynthesis.cancel();
 
@@ -144,7 +144,9 @@
 
   // 嘗試選擇最適合的中文語音
   const voices = speechSynthesis.getVoices();
-  const zhVoice = voices.find(v => v.lang === "zh-TW" || v.lang === "zh_CN" || v.name.includes("Chinese"));
+  const zhVoice = voices.find(v =>
+    v.lang === "zh-TW" || v.lang === "zh_CN" || v.name.includes("Chinese")
+  );
   if (zhVoice) {
     u.voice = zhVoice;
   }
@@ -158,6 +160,7 @@
 
 // 避免語音清單不載入（某些裝置需觸發）
 speechSynthesis.onvoiceschanged = () => {};
+} 
 
 
     const notifySelect = document.getElementById("notifyTime");
