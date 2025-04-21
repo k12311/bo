@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>兄弟語錄挑戰版</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
   <style>
     body {
       background-color: #fff9db;
@@ -66,7 +68,22 @@
     <h2>🏅 我的兄弟魂徽章</h2>
     <div id="badgeList">（尚未解鎖）</div>
   </div>
+    <script>
+   const firebaseConfig = {
+  apiKey: "AIzaSyB4DjxxWFZvaN54Ioy0fzo010sxslXfMeg",
+  authDomain: "ffjj-67dcf.firebaseapp.com",
+  projectId: "ffjj-67dcf",
+  storageBucket: "ffjj-67dcf.appspot.com",
+  messagingSenderId: "572382978762",
+  appId: "1:572382978762:web:f185509ed62c2543e5ca33",
+  measurementId: "G-K4KF8E1H9G"
+};
 
+// 初始化 Firebase
+firebase.initializeApp(firebaseConfig);
+
+// 初始化 Firestore
+const db = firebase.firestore();
   <script>
     const quotes = ["兄弟齊心，其利斷金！","不離不棄，永遠一家！","勝利屬於堅持到底的人！","今天流的汗，會是明天的光芒。","用笑容迎接每一次挑戰！","輸贏之外，我們看到更多的感動。","不只是一場比賽，是信仰的延續。","做彼此的後盾，就是兄弟。","一日兄弟，終身兄弟。","你不孤單，我們一起戰到最後！"];
     const games = {
